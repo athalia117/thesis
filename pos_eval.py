@@ -8,7 +8,7 @@ from sklearn.metrics import ConfusionMatrixDisplay, classification_report, \
     confusion_matrix
 from sklearn import preprocessing
 
-# pt_split_sb = np.vectorize(lambda t: t.split('[')[0])
+pt_split_sb = np.vectorize(lambda t: t.split('[')[0])
 pt_split_rb = np.vectorize(lambda t: t.split('(')[0])
 
 
@@ -28,8 +28,7 @@ class PosTagEval:
         le = preprocessing.LabelEncoder()
 
         # orig file
-        df = pd.read_csv(self.gold_file, delimiter='\t',
-                         skiprows=1, header=None,
+        df = pd.read_csv(self.gold_file, delimiter='\t', header=None,
                          engine='python', quoting=csv.QUOTE_NONE)
         pt = df[0].to_numpy()
         pt = pt[pt != None]
@@ -37,14 +36,22 @@ class PosTagEval:
         le.fit(pt)
         self.labels = list(le.classes_)
         self.gold_tags = pt
+        # print(self.labels)
 
         # new file
         df = pd.read_csv(self.pred_file, delimiter='\t',
                          skiprows=1, header=None,
                          engine='python', quoting=csv.QUOTE_NONE)
-        pt = df[5].to_numpy()
+        # print(df)
+        pt = df[4].to_numpy()
         pt = pt[pt != None]
-        self.pred_tags = pt_split_rb(pt)
+
+        if '(' in pt[0]:
+            self.pred_tags = pt_split_rb(pt)
+        elif '[' in pt[0]:
+            self.pred_tags = pt_split_sb(pt)
+        else:
+            self.pred_tags = pt
 
     def report(self):
         print(classification_report(self.gold_tags, self.pred_tags, labels=self.labels))
